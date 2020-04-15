@@ -4,7 +4,16 @@
 \alias{align_seq2mrf}
 \title{align sequence to mrf}
 \usage{
-align_seq2mrf(seq, mrf, iteration = 20, wt_h = 1, wt_j = 1, debug = TRUE)
+align_seq2mrf(
+  seq,
+  mrf,
+  iteration = 20,
+  wt_h = 1,
+  wt_j = 1,
+  gap_ext = 0.1,
+  gap_open = -1,
+  debug = TRUE
+)
 }
 \arguments{
 \item{seq}{sequence}
@@ -16,6 +25,10 @@ align_seq2mrf(seq, mrf, iteration = 20, wt_h = 1, wt_j = 1, debug = TRUE)
 \item{wt_h}{weight of field term H}
 
 \item{wt_j}{weight of coupling term J}
+
+\item{gap_ext}{gap extension penalty}
+
+\item{gap_open}{gap open penalty}
 
 \item{debug}{verbose}
 }

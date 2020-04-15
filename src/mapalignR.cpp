@@ -301,7 +301,16 @@ DoubleVector score_aln(IntegerVector a2b,IntegerVector seq,  NumericMatrix mrf_m
 
 
 // [[Rcpp::export]]
-NumericMatrix mod_SCO(NumericMatrix SCO, int iteration,IntegerVector seq, NumericMatrix mrf_mat,NumericMatrix mrf_h,double wt_h, double wt_j,bool DEBUG){
+NumericMatrix mod_SCO(NumericMatrix SCO,
+                      int iteration,
+                      IntegerVector seq,
+                      NumericMatrix mrf_mat,
+                      NumericMatrix mrf_h,
+                      double wt_h,
+                      double wt_j,
+                      double gap_o,
+                      double gap_e,
+                      bool DEBUG){
 
       // iterate
     IntegerVector a2b_tmp;
@@ -311,7 +320,7 @@ NumericMatrix mod_SCO(NumericMatrix SCO, int iteration,IntegerVector seq, Numeri
     for(int it=0; it < iteration; it++)
     {
         // align
-        a2b_tmp = align(SCO_cln,0.1,-1);
+        a2b_tmp = align(SCO_cln,gap_e,gap_o);
 
         score_aln(a2b_tmp, seq, mrf_mat, mrf_h,DEBUG);
 

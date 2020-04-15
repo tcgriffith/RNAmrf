@@ -91,6 +91,83 @@ align_R=function(score_mtx, gap_open=-1,gap_e=0.2,debug=FALSE){
 
 }
 
+#' read_mrf_renum read a MRF model from GREMLIN output, column renumbered
+#'
+#' @param filemrf
+#'
+#' @return list object of mrf
+#' @export
+#' @import dplyr
+#'
+read_mrf_renum = function(filemrf) {
+
+  myalphabet = c("a", "u", "c", "g", "-")
+
+  v1 = data.table::fread(cmd = paste("grep '^V'", filemrf))
+  names(v1)[-1] = myalphabet
+
+  w1 = data.table::fread(cmd = paste("grep  '^W'", filemrf))
+
+
+  len=nrow(v1)
+  len_a=length(myalphabet)
+
+  # renumber MRF
+
+  v1$i_ori=as.integer(gsub(".*\\[(.*?)\\].*","\\1",v1$V1))
+  v1$i=1:nrow(v1)
+
+
+  w1$i_ori=as.integer(gsub(".*\\[(.*?)\\]\\[(.*?)\\].*","\\1",w1$V1))
+  w1$i=match(w1$i_ori,v1$i_ori)
+
+  w1$j_ori=as.integer(gsub(".*\\[(.*?)\\]\\[(.*?)\\].*","\\2",w1$V1))
+  w1$j=match(w1$j_ori, v1$i_ori)
+
+  array_j = array(0, dim = c(len, len, len_a, len_a))
+
+  for (m in 1:nrow(w1)) {
+    id_i = w1$i[m]
+    id_j = w1$j[m]
+
+    mat = matrix(as.matrix(w1[m, 2:26]), 5, 5, byrow = TRUE)
+    array_j[id_i, id_j, , ] = mat
+
+  }
+
+  ids = expand.grid(1:nrow(v1), 1:nrow(v1)) %>% filter(Var2 > Var1) %>% arrange(Var1)
+  w1_mat = as.matrix(w1[, 2:(1 + length(myalphabet) * length(myalphabet))])
+
+  mat_score = sapply(1:nrow(w1_mat), function(i) {
+    tmpmat = matrix(w1_mat[i,], 5, 5)
+    score = sqrt(sum(tmpmat[-5,-5] ^ 2))
+    return(score)
+  })
+  ids$score = mat_score
+
+  mat_mrf = matrix(0, nrow(v1), nrow(v1))
+
+  mat_mrf[as.matrix(ids[, c(1, 2)])] = ids[, 3]
+  mat_mrf[as.matrix(ids[, c(2, 1)])] = ids[, 3]
+
+  mat_apc =APC_correction(mat_mrf)
+
+  mrf = list(
+    len = len,
+    h = v1,
+    j = w1,
+    mat_mrf = mat_mrf,
+    mat_apc = mat_apc,
+    array_j=array_j
+  )
+  mrf_mat=mrf2mrf_mat(mrf)
+  mrfh = as.matrix((mrf$h[, 2:6]))
+
+  mrf$mrf_mat=mrf_mat
+  mrf$mrf_h=mrfh
+
+  return(mrf)
+}
 
 #' read_mrf read a MRF model from GREMLIN output.
 #'
@@ -285,12 +362,14 @@ a2b2seq= function(a2b_1b,seq,mrf_len,type=c("c","s")){
 #' @param iteration number of iterations
 #' @param wt_h weight of field term H
 #' @param wt_j weight of coupling term J
+#' @param gap_ext gap extension penalty
+#' @param gap_open gap open penalty
 #' @param debug verbose
 #'
 #' @return a2b, mapping index to sequence. Length is the same as mrf
 #' @export
 #'
-align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,debug=TRUE) {
+align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,gap_ext=0.1, gap_open=-1,debug=TRUE) {
 
   exp_seq = encode_seq(seq)
 
@@ -304,10 +383,12 @@ align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,debug=TRUE) {
     mrf_h = mrf$mrf_h,
     wt_h = wt_h,
     wt_j = wt_j,
+    gap_o=gap_open,
+    gap_e=gap_ext,
     DEBUG = debug
   )
 
-  a2b=align(SCO_mod,gap_ext = 0.1,gap_open = -1)
+  a2b=align(SCO_mod,gap_ext = gap_ext,gap_open = gap_open)
   return(a2b)
 }
 
@@ -368,4 +449,53 @@ bench_a2b = function(a2b_0b, # a2b output of Rcpp, 0 based
   return(rslt)
 
 
+}
+
+#' pair_a2b2aln convert two a2b to aligned sequence.
+#'
+#'
+#'
+#' @param a2b_1 integer vector of length(mrf),encoding the alignment of seq1 to MRF
+#' @param a2b_2 integer vector of length(mrf),encoding the alignment of seq2 to MRF
+#' @param seqs unaligned seq list, read from seqinr::read.fasta()
+#'
+#' @return list of aligned seqs
+#' @export
+#'
+pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
+
+  last_idx = -1
+  for (i in 1:length(a2b_1)) {
+    if (a2b_1[i] == -1) {
+      a2b_1[a2b_1 > last_idx] = a2b_1[a2b_1 > last_idx] + 1
+      a2b_2[a2b_2 > last_idx] = a2b_2[a2b_2 > last_idx] + 1
+      a2b_1[i] = last_idx + 1
+    }
+    last_idx = a2b_1[i]
+  }
+
+  last_idx = -1
+  for (i in 1:length(a2b_2)) {
+    if (a2b_2[i] == -1) {
+      a2b_1[a2b_1 > last_idx] = a2b_1[a2b_1 > last_idx] + 1
+      a2b_2[a2b_2 > last_idx] = a2b_2[a2b_2 > last_idx] + 1
+      a2b_2[i] = last_idx + 1
+    }
+    last_idx = a2b_2[i]
+  }
+
+  a2b_1_1b=a2b_1+1
+  a2b_2_1b=a2b_2+1
+  seq_aln1 = character(max(a2b_1_1b, a2b_2_1b))
+  seq_aln1[] = "-"
+  seq_aln2 = character(max(a2b_1_1b, a2b_2_1b))
+  seq_aln2[] = "-"
+
+  seq_aln1[a2b_1_1b] = seqs[[1]]
+  seq_aln2[a2b_2_1b] = seqs[[2]]
+
+  return(list(
+    seq_aln1=seq_aln1,
+    seq_aln2=seq_aln2
+  ))
 }

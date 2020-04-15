@@ -34,8 +34,8 @@ score_aln <- function(a2b, seq, mrf_mat, mrf_h, DEBUG) {
     .Call(`_RNAmrf_score_aln`, a2b, seq, mrf_mat, mrf_h, DEBUG)
 }
 
-mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, DEBUG) {
-    .Call(`_RNAmrf_mod_SCO`, SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, DEBUG)
+mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG) {
+    .Call(`_RNAmrf_mod_SCO`, SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
 }
 
 #' @export
