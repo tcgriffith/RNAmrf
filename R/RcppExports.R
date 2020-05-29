@@ -17,9 +17,8 @@ retrieve_matj <- function(i, a, j, b, mat_j, len_a) {
     .Call(`_RNAmrf_retrieve_matj`, i, a, j, b, mat_j, len_a)
 }
 
-#' @export
-ini_SCO <- function(seq, mrf_mat, mrf_h, mrf_len, sep_x, sep_y) {
-    .Call(`_RNAmrf_ini_SCO`, seq, mrf_mat, mrf_h, mrf_len, sep_x, sep_y)
+ini_SCO <- function(seq, mrf_mat, mrf_h, DEBUG = FALSE) {
+    .Call(`_RNAmrf_ini_SCO`, seq, mrf_mat, mrf_h, DEBUG)
 }
 
 ini_SCO_simple <- function(seq, mrf_h) {
@@ -30,12 +29,40 @@ align <- function(sco_mtx, gap_ext, gap_open) {
     .Call(`_RNAmrf_align`, sco_mtx, gap_ext, gap_open)
 }
 
-score_aln <- function(a2b, seq, mrf_mat, mrf_h, DEBUG) {
+align_C_mat <- function(sco_mtx, gap_ext, gap_open) {
+    .Call(`_RNAmrf_align_C_mat`, sco_mtx, gap_ext, gap_open)
+}
+
+align_C_lab <- function(sco_mtx, gap_ext, gap_open) {
+    .Call(`_RNAmrf_align_C_lab`, sco_mtx, gap_ext, gap_open)
+}
+
+align_PSgap <- function(sco_mtx, gap_ext, gap_open) {
+    .Call(`_RNAmrf_align_PSgap`, sco_mtx, gap_ext, gap_open)
+}
+
+align_PSgap2 <- function(sco_mtx, gap_ext, gap_ins, gap_del) {
+    .Call(`_RNAmrf_align_PSgap2`, sco_mtx, gap_ext, gap_ins, gap_del)
+}
+
+score_aln <- function(a2b, seq, mrf_mat, mrf_h, DEBUG = FALSE) {
     .Call(`_RNAmrf_score_aln`, a2b, seq, mrf_mat, mrf_h, DEBUG)
 }
 
-mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG) {
+mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
     .Call(`_RNAmrf_mod_SCO`, SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
+}
+
+mod_SCO_PSgap <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
+    .Call(`_RNAmrf_mod_SCO_PSgap`, SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
+}
+
+mod_SCO_PSgap2 <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_ins, gap_del, gap_e, DEBUG = FALSE) {
+    .Call(`_RNAmrf_mod_SCO_PSgap2`, SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_ins, gap_del, gap_e, DEBUG)
+}
+
+a2b2a2m <- function(a2b, seq, mrflen) {
+    .Call(`_RNAmrf_a2b2a2m`, a2b, seq, mrflen)
 }
 
 #' @export

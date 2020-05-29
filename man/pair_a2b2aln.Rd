@@ -7,9 +7,9 @@
 pair_a2b2aln(a2b_1, a2b_2, seqs)
 }
 \arguments{
-\item{a2b_1}{integer vector of length(mrf),encoding the alignment of seq1 to MRF}
+\item{a2b_1}{integer vector of length(seq1),encoding the alignment of seq1 to MRF}
 
-\item{a2b_2}{integer vector of length(mrf),encoding the alignment of seq2 to MRF}
+\item{a2b_2}{integer vector of length(seq2),encoding the alignment of seq2 to MRF}
 
 \item{seqs}{unaligned seq list, read from seqinr::read.fasta()}
 }

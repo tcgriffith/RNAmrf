@@ -49,8 +49,17 @@ align_R=function(score_mtx, gap_open=-1,gap_e=0.2,debug=FALSE){
       A = sco[i-1,j-1] + score_mtx[i-1,j-1]
       D = sco[i-1,j]
       R = sco[i,j-1]
-      if(label[i-1,j] == 1){D =D+ gap_open}else{D =D+ gap_open * gap_e}
-      if(label[i,j-1] == 1){R =R+ gap_open}else{R =D+ gap_open * gap_e}
+      if(label[i-1,j] == 1){
+        D = D+ gap_open
+      } else{
+        D = D+ gap_open * gap_e
+      }
+
+      if(label[i,j-1] == 1){
+        R = R+ gap_open
+      } else{
+        R = R+ gap_open * gap_e
+      }
       # if(label[i-1,j] == 1){D =D+ gap_b[j-1]}else{D =D+ gap_b[j-1] * gap_e}
       # if(label[i,j-1] == 1){R =R+ gap_a[i-1]}else{R =D+ gap_a[i-1] * gap_e}
 
@@ -392,6 +401,85 @@ align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,gap_ext=0.1, ga
   return(a2b)
 }
 
+
+#' align sequence to mrf
+#'
+#' @param seq sequence
+#' @param mrf mrf read by read_mrf
+#' @param iteration number of iterations
+#' @param wt_h weight of field term H
+#' @param wt_j weight of coupling term J
+#' @param gap_ext gap extension penalty
+#' @param gap_open gap open penalty
+#' @param debug verbose
+#'
+#' @return a2b, mapping index to sequence. Length is the same as mrf
+#' @export
+#'
+align_seq2mrf_PSgap = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,gap_ext=0.1, gap_open,debug=TRUE) {
+
+  exp_seq = encode_seq(seq)
+
+  SCO_init = ini_SCO_simple(exp_seq$seq_int_ungapped,
+                            mrf_h = mrf$mrf_h)
+
+  SCO_mod = mod_SCO_PSgap(
+    SCO_init,
+    iteration = iteration,
+    exp_seq$seq_int_ungapped,
+    mrf_mat = mrf$mrf_mat,
+    mrf_h = mrf$mrf_h,
+    wt_h = wt_h,
+    wt_j = wt_j,
+    gap_o=gap_open,
+    gap_e=gap_ext,
+    DEBUG = debug
+  )
+
+  a2b=align_PSgap(SCO_mod,gap_ext = gap_ext,gap_open = gap_open)
+  return(a2b)
+}
+
+#' align sequence to mrf with position specific gaps
+#'
+#' @param seq sequence
+#' @param mrf mrf read by read_mrf
+#' @param iteration number of iterations
+#' @param wt_h weight of field term H
+#' @param wt_j weight of coupling term J
+#' @param gap_ext gap extension penalty
+#' @param gap_ins gap open penalty based on insertion
+#' @param gap_del gap open penalty based on deletion
+#' @param debug verbose
+#'
+#' @return a2b, mapping index to sequence. Length is the same as mrf
+#' @export
+#'
+align_seq2mrf_psgap2=function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,gap_ext=0.1, gap_ins,gap_del,debug=TRUE) {
+
+  exp_seq = RNAmrf::encode_seq(seq)
+
+  SCO_init = RNAmrf:::ini_SCO_simple(exp_seq$seq_int_ungapped,
+                            mrf_h = mrf$mrf_h)
+  SCO_mod = RNAmrf:::mod_SCO_PSgap2(
+    SCO_init,
+    iteration = iteration,
+    exp_seq$seq_int_ungapped,
+    mrf_mat = mrf$mrf_mat,
+    mrf_h = mrf$mrf_h,
+    wt_h = wt_h,
+    wt_j = wt_j,
+    gap_ins = gap_ins,
+    gap_del = gap_del,
+    gap_e=gap_ext,
+    DEBUG = debug
+  )
+
+  a2b=RNAmrf:::align_PSgap2(SCO_mod,gap_ext = gap_ext,gap_ins = gap_ins,gap_del = gap_del)
+  return(a2b)
+}
+
+
 align_seq2mrf_mtx = function(seq, mrf_mat, mrf_h,iteration=20,wt_h=1.0,wt_j=1.0,debug=TRUE) {
 
   exp_seq = encode_seq(seq)
@@ -455,8 +543,8 @@ bench_a2b = function(a2b_0b, # a2b output of Rcpp, 0 based
 #'
 #'
 #'
-#' @param a2b_1 integer vector of length(mrf),encoding the alignment of seq1 to MRF
-#' @param a2b_2 integer vector of length(mrf),encoding the alignment of seq2 to MRF
+#' @param a2b_1 integer vector of length(seq1),encoding the alignment of seq1 to MRF
+#' @param a2b_2 integer vector of length(seq2),encoding the alignment of seq2 to MRF
 #' @param seqs unaligned seq list, read from seqinr::read.fasta()
 #'
 #' @return list of aligned seqs
@@ -469,7 +557,7 @@ pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
     if (a2b_1[i] == -1) {
       a2b_1[a2b_1 > last_idx] = a2b_1[a2b_1 > last_idx] + 1
       a2b_2[a2b_2 > last_idx] = a2b_2[a2b_2 > last_idx] + 1
-      a2b_1[i] = last_idx + 1
+      a2b_1[i] = last_idx + 1 # fill unaligned
     }
     last_idx = a2b_1[i]
   }
@@ -479,7 +567,7 @@ pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
     if (a2b_2[i] == -1) {
       a2b_1[a2b_1 > last_idx] = a2b_1[a2b_1 > last_idx] + 1
       a2b_2[a2b_2 > last_idx] = a2b_2[a2b_2 > last_idx] + 1
-      a2b_2[i] = last_idx + 1
+      a2b_2[i] = last_idx + 1 # fill unaligned
     }
     last_idx = a2b_2[i]
   }
@@ -498,4 +586,11 @@ pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
     seq_aln1=seq_aln1,
     seq_aln2=seq_aln2
   ))
+}
+
+a2b2a2m_list = function(a2b0b.l,seqenc.l,mrflen){
+  seqa2m.l=lapply(1:length(a2b0b.l),function(i){
+
+
+  })
 }
