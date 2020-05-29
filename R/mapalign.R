@@ -588,9 +588,32 @@ pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
   ))
 }
 
-a2b2a2m_list = function(a2b0b.l,seqenc.l,mrflen){
-  seqa2m.l=lapply(1:length(a2b0b.l),function(i){
 
+#' mrfaln_seqs
+#'
+#' @param seqs seqs read from seqinr::read.fasta
+#' @param mrf mrf model read from RNAmrf::read_mrf_renum
+#'
+#' @return a list of re-aligned sequences in a2m format.
+#'         Can be converted to other alignment format using esl-reformat
+#' @export
+#'
+mrfaln_seqs = function(seqs, mrf) {
+  pbapply::pboptions("txt")
+  aln_a2m = pbapply::pblapply(seqs, function(aseq) {
+    a2b = align_seq2mrf(
+      aseq,
+      mrf = mrf,
+      gap_open = -3,
+      debug = FALSE,
+      iteration = 25
+    )
+    seqenc=RNAmrf:::encode_seq(aseq)
 
+    a2m= RNAmrf:::a2b2a2m(a2b,seqenc$seq_int_ungapped,mrflen = mrf$len)
+    return(a2m)
   })
+
+  return(aln_a2m)
 }
+
