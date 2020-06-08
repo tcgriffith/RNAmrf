@@ -110,3 +110,30 @@ ss2pairs = function(ss) {
 
   return(df)
 }
+
+
+#' Convert a2m formatted multiple sequence alignment to seqidx, a reference-to-sequence index
+#'
+#' In an a2m formatted MSA, lowercase residues are insertions, - are gaps, uppercase residues are aligned.
+#'
+#' @param seq a sequence in a MSA, read from seqinr::read.fasta
+#' @param idx_aln integer vector, reference columns.
+#'
+#' @return seqidx, integer vector, pointer from reference to sequence.
+#' e.g. seqidx[i]=5 means 5th residue is aligned to i.
+#' 0 means a gap.
+#'
+#'
+msa_a2m2seqidx=function(seq, idx_aln=NULL){
+  idx_seq=which(seq %in% c("A","U","C","G","N","R","M","a","u","c","g","n","r")) # seq -> full alignment
+
+  if (is.null(idx_aln)){
+    idx_aln=which(seq %in% c("A","U","C","G","N","R","M","-")) # ref->full alignment
+  }
+
+  idx_seqtmp=numeric(length(seq))
+  idx_seqtmp[idx_seq]=1:length(idx_seq) # encode seq pointer, full alignment-> seq
+
+  seqidx=idx_seqtmp[idx_aln] # extract aligned seq pointer, ref -> seq
+  return(seqidx)
+}

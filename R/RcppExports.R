@@ -65,10 +65,3 @@ a2b2a2m <- function(a2b, seq, mrflen) {
     .Call(`_RNAmrf_a2b2a2m`, a2b, seq, mrflen)
 }
 
-#' @export
-NULL
-
-rcpp_hello <- function() {
-    .Call(`_RNAmrf_rcpp_hello`)
-}
-

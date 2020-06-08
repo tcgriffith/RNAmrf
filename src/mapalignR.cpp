@@ -520,7 +520,8 @@ NumericMatrix mod_SCO(NumericMatrix SCO,
             for(int bi=0; bi < SCO_cln.ncol(); bi++){ // go through columns (vec_b) in map_b that has contacts
                 // int bi = vec_b[b];
                 double sco_contact = 0;
-                double sco_single = 0;
+                double
+                  = 0;
                 for(int aj=0; aj < SCO_cln.nrow(); aj++){ // go through contacts in vec_a
 
                     if (aj == ai) continue;
@@ -627,9 +628,6 @@ NumericMatrix mod_SCO_PSgap(NumericMatrix SCO,
 
               sco_contact = sco_contact + score_a2b *sepw(sep_M);
 
-
-              // sco_contact = score_a2b *  sepw(sep_M);
-              // sco_contact = 0;
             }
           }
         }
@@ -719,11 +717,8 @@ NumericMatrix mod_SCO_PSgap2(NumericMatrix SCO,
         if (ai==1) {
           // std::cerr << bi << " " << sco_contact << std::endl;
         }
-
-        // double wt_single = 0.0;
-        // double wt_contact = 1.0;
         sco_single = mrf_h(bi, nt_ai);
-        // SCO_cln(ai,bi) = s1 *SCO_cln(ai,bi) + s2 *sco_contact;
+
         SCO_cln(ai,bi) = s1*SCO_cln(ai,bi) + s2*(sco_contact*wt_j+sco_single*wt_h);
       }
     }

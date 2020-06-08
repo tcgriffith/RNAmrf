@@ -237,16 +237,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rcpp_hello
-List rcpp_hello();
-RcppExport SEXP _RNAmrf_rcpp_hello() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_gaussian", (DL_FUNC) &_RNAmrf_gaussian, 3},
@@ -265,7 +255,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_mod_SCO_PSgap", (DL_FUNC) &_RNAmrf_mod_SCO_PSgap, 10},
     {"_RNAmrf_mod_SCO_PSgap2", (DL_FUNC) &_RNAmrf_mod_SCO_PSgap2, 11},
     {"_RNAmrf_a2b2a2m", (DL_FUNC) &_RNAmrf_a2b2a2m, 3},
-    {"_RNAmrf_rcpp_hello", (DL_FUNC) &_RNAmrf_rcpp_hello, 0},
     {NULL, NULL, 0}
 };
 

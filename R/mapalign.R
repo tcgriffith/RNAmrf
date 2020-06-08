@@ -97,31 +97,28 @@ align_R=function(score_mtx, gap_open=-1,gap_e=0.2,debug=FALSE){
   }
 
   return(a2b)
-
 }
 
-#' read_mrf_renum read a MRF model from GREMLIN output, column renumbered
+
+#' read_mrf read a MRF model from GREMLIN output, column renumbered
 #'
 #' @param filemrf
 #'
 #' @return list object of mrf
 #' @export
 #' @import dplyr
+#' @importFrom data.table fread
 #'
-read_mrf_renum = function(filemrf) {
+read_mrf= function(filemrf){
 
   myalphabet = c("a", "u", "c", "g", "-")
 
   v1 = data.table::fread(cmd = paste("grep '^V'", filemrf))
   names(v1)[-1] = myalphabet
-
   w1 = data.table::fread(cmd = paste("grep  '^W'", filemrf))
-
 
   len=nrow(v1)
   len_a=length(myalphabet)
-
-  # renumber MRF
 
   v1$i_ori=as.integer(gsub(".*\\[(.*?)\\].*","\\1",v1$V1))
   v1$i=1:nrow(v1)
@@ -133,33 +130,27 @@ read_mrf_renum = function(filemrf) {
   w1$j_ori=as.integer(gsub(".*\\[(.*?)\\]\\[(.*?)\\].*","\\2",w1$V1))
   w1$j=match(w1$j_ori, v1$i_ori)
 
-  array_j = array(0, dim = c(len, len, len_a, len_a))
+  mrf_mat=RNAmrf:::mrf2mrf_mat(w1,len)
+  mrfh = as.matrix((v1[, 2:6]))
 
-  for (m in 1:nrow(w1)) {
-    id_i = w1$i[m]
-    id_j = w1$j[m]
+  w1mat=as.matrix(w1[,2:(len_a^2+1)])
 
-    mat = matrix(as.matrix(w1[m, 2:26]), 5, 5, byrow = TRUE)
-    array_j[id_i, id_j, , ] = mat
-
-  }
-
-  ids = expand.grid(1:nrow(v1), 1:nrow(v1)) %>% filter(Var2 > Var1) %>% arrange(Var1)
-  w1_mat = as.matrix(w1[, 2:(1 + length(myalphabet) * length(myalphabet))])
-
-  mat_score = sapply(1:nrow(w1_mat), function(i) {
-    tmpmat = matrix(w1_mat[i,], 5, 5)
+  mat_score = sapply(1:nrow(w1), function(i) {
+    tmpmat = matrix(w1mat[i,], 5, 5)
     score = sqrt(sum(tmpmat[-5,-5] ^ 2))
     return(score)
   })
+  ids=data.frame(i=w1$i,j=w1$j)
+
   ids$score = mat_score
 
-  mat_mrf = matrix(0, nrow(v1), nrow(v1))
 
+
+  mat_mrf = matrix(0, nrow(v1), nrow(v1))
   mat_mrf[as.matrix(ids[, c(1, 2)])] = ids[, 3]
   mat_mrf[as.matrix(ids[, c(2, 1)])] = ids[, 3]
 
-  mat_apc =APC_correction(mat_mrf)
+  mat_apc=RNAmrf:::APC_correction(mat_mrf)
 
   mrf = list(
     len = len,
@@ -167,105 +158,23 @@ read_mrf_renum = function(filemrf) {
     j = w1,
     mat_mrf = mat_mrf,
     mat_apc = mat_apc,
-    array_j=array_j
+    mrf_mat=mrf_mat,
+    mrf_h=mrfh
   )
-  mrf_mat=mrf2mrf_mat(mrf)
-  mrfh = as.matrix((mrf$h[, 2:6]))
-
-  mrf$mrf_mat=mrf_mat
-  mrf$mrf_h=mrfh
-
   return(mrf)
 }
-
-#' read_mrf read a MRF model from GREMLIN output.
-#'
-#' @param filemrf
-#'
-#' @return list object of mrf
-#' @export
-#' @import dplyr
-#'
-read_mrf = function(filemrf) {
-
-  myalphabet = c("a", "u", "c", "g", "-")
-
-  v1 = data.table::fread(cmd = paste("grep '^V'", filemrf))
-  names(v1)[-1] = myalphabet
-
-  w1 = data.table::fread(cmd = paste("grep  '^W'", filemrf))
-
-
-  len=nrow(v1)
-  len_a=length(myalphabet)
-
-  w1$i=as.integer(gsub(".*\\[(.*?)\\]\\[(.*?)\\].*","\\1",w1$V1))+1
-
-  w1$j=as.integer(gsub(".*\\[(.*?)\\]\\[(.*?)\\].*","\\2",w1$V1))+1
-
-  array_j = array(0, dim = c(len, len, len_a, len_a))
-
-  for (m in 1:nrow(w1)) {
-    id_i = w1$i[m]
-    id_j = w1$j[m]
-
-    mat = matrix(as.matrix(w1[m, 2:26]), 5, 5, byrow = TRUE)
-    array_j[id_i, id_j, , ] = mat
-
-  }
-
-
-
-  ids = expand.grid(1:nrow(v1), 1:nrow(v1)) %>% filter(Var2 > Var1) %>% arrange(Var1)
-  w1_mat = as.matrix(w1[, 2:(1 + length(myalphabet) * length(myalphabet))])
-
-  mat_score = sapply(1:nrow(w1_mat), function(i) {
-    tmpmat = matrix(w1_mat[i,], 5, 5)
-    score = sqrt(sum(tmpmat[-5,-5] ^ 2))
-    return(score)
-  })
-  ids$score = mat_score
-
-  mat_mrf = matrix(0, nrow(v1), nrow(v1))
-
-  mat_mrf[as.matrix(ids[, c(1, 2)])] = ids[, 3]
-  mat_mrf[as.matrix(ids[, c(2, 1)])] = ids[, 3]
-
-  mat_apc = APC_correction(mat_mrf)
-
-
-
-  mrf = list(
-    len = len,
-    h = v1,
-    j = w1,
-    mat_mrf = mat_mrf,
-    mat_apc = mat_apc,
-    array_j=array_j
-  )
-  mrf_mat=mrf2mrf_mat(mrf)
-  mrfh = as.matrix((mrf$h[, 2:6]))
-
-  mrf$mrf_mat=mrf_mat
-  mrf$mrf_h=mrfh
-
-  return(mrf)
-}
-
 retrieve_matj=function(i,a,j,b,mat_j,len_a){
   return(mat_j[(i-1)*len_a+a,(j-1)*len_a+b])
 }
 
-mrf2mrf_mat = function(mrf) {
+mrf2mrf_mat = function(w1,mrflen) {
   myalphabet = c("a", "u", "c", "g", "-")
 
-  len = mrf$len
+  len = mrflen
   len_a = length(myalphabet)
-
 
   mat_j = matrix(0, len * len_a, len * len_a)
 
-  w1 = mrf$j
   for (m in 1:nrow(w1)) {
     id_i = w1$i[m]
     id_j = w1$j[m]
@@ -597,9 +506,10 @@ pair_a2b2aln = function(a2b_1, a2b_2, seqs) {
 #' @return a list of re-aligned sequences in a2m format.
 #'         Can be converted to other alignment format using esl-reformat
 #' @export
+#' @import pbapply
 #'
 mrfaln_seqs = function(seqs, mrf) {
-  pbapply::pboptions("txt")
+  pbapply::pboptions(type="timer")
   aln_a2m = pbapply::pblapply(seqs, function(aseq) {
     a2b = align_seq2mrf(
       aseq,

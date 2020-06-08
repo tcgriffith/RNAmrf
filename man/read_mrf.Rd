@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapalign.R
 \name{read_mrf}
 \alias{read_mrf}
-\title{read_mrf read a MRF model from GREMLIN output.}
+\title{read_mrf read a MRF model from GREMLIN output, column renumbered}
 \usage{
 read_mrf(filemrf)
 }
@@ -13,5 +13,5 @@ read_mrf(filemrf)
 list object of mrf
 }
 \description{
-read_mrf read a MRF model from GREMLIN output.
+read_mrf read a MRF model from GREMLIN output, column renumbered
 }
