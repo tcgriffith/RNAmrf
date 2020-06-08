@@ -29,6 +29,10 @@ align <- function(sco_mtx, gap_ext, gap_open) {
     .Call(`_RNAmrf_align`, sco_mtx, gap_ext, gap_open)
 }
 
+align_b2a <- function(sco_mtx, gap_ext, gap_open) {
+    .Call(`_RNAmrf_align_b2a`, sco_mtx, gap_ext, gap_open)
+}
+
 align_C_mat <- function(sco_mtx, gap_ext, gap_open) {
     .Call(`_RNAmrf_align_C_mat`, sco_mtx, gap_ext, gap_open)
 }
@@ -47,6 +51,10 @@ align_PSgap2 <- function(sco_mtx, gap_ext, gap_ins, gap_del) {
 
 score_aln <- function(a2b, seq, mrf_mat, mrf_h, DEBUG = FALSE) {
     .Call(`_RNAmrf_score_aln`, a2b, seq, mrf_mat, mrf_h, DEBUG)
+}
+
+mod_SCO_sparse <- function(SCO, iteration, seq, pair_mat, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
+    .Call(`_RNAmrf_mod_SCO_sparse`, SCO, iteration, seq, pair_mat, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
 }
 
 mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
