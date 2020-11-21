@@ -5,10 +5,6 @@ gaussian <- function(mean, stdev, x) {
     .Call(`_RNAmrf_gaussian`, mean, stdev, x)
 }
 
-test <- function(x) {
-    .Call(`_RNAmrf_test`, x)
-}
-
 Falign <- function(sco_mtx) {
     .Call(`_RNAmrf_Falign`, sco_mtx)
 }
@@ -19,6 +15,10 @@ retrieve_matj <- function(i, a, j, b, mat_j, len_a) {
 
 ini_SCO <- function(seq, mrf_mat, mrf_h, DEBUG = FALSE) {
     .Call(`_RNAmrf_ini_SCO`, seq, mrf_mat, mrf_h, DEBUG)
+}
+
+ini_SCO_sparse <- function(seq, pairs, mrf_mat, mrf_h, DEBUG = FALSE) {
+    .Call(`_RNAmrf_ini_SCO_sparse`, seq, pairs, mrf_mat, mrf_h, DEBUG)
 }
 
 ini_SCO_simple <- function(seq, mrf_h) {
@@ -53,8 +53,8 @@ score_aln <- function(a2b, seq, mrf_mat, mrf_h, DEBUG = FALSE) {
     .Call(`_RNAmrf_score_aln`, a2b, seq, mrf_mat, mrf_h, DEBUG)
 }
 
-mod_SCO_sparse <- function(SCO, iteration, seq, pair_mat, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
-    .Call(`_RNAmrf_mod_SCO_sparse`, SCO, iteration, seq, pair_mat, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
+mod_SCO_sparse <- function(SCO, iteration, seq, pairs, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
+    .Call(`_RNAmrf_mod_SCO_sparse`, SCO, iteration, seq, pairs, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG)
 }
 
 mod_SCO <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG = FALSE) {
@@ -71,5 +71,13 @@ mod_SCO_PSgap2 <- function(SCO, iteration, seq, mrf_mat, mrf_h, wt_h, wt_j, gap_
 
 a2b2a2m <- function(a2b, seq, mrflen) {
     .Call(`_RNAmrf_a2b2a2m`, a2b, seq, mrflen)
+}
+
+str_sim <- function(v1, v2) {
+    .Call(`_RNAmrf_str_sim`, v1, v2)
+}
+
+calc_wt <- function(seqmat, cutoff = 0.8) {
+    .Call(`_RNAmrf_calc_wt`, seqmat, cutoff)
 }
 

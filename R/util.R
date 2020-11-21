@@ -117,9 +117,9 @@ ss2pairs = function(ss) {
 #' In an a2m formatted MSA, lowercase residues are insertions, - are gaps, uppercase residues are aligned.
 #'
 #' @param seq a sequence in a MSA, read from seqinr::read.fasta
-#' @param idx_aln integer vector, reference columns.
+#' @param idx_aln integer vector, reference columns. if NULL, it's guessed from the uppercase alignment.
 #'
-#' @return seqidx, integer vector, pointer from reference to sequence.
+#' @return seqidx, integer vector, pointer from reference columns to sequence.
 #' e.g. seqidx[i]=5 means 5th residue is aligned to i.
 #' 0 means a gap.
 #'
@@ -136,4 +136,87 @@ msa_a2m2seqidx=function(seq, idx_aln=NULL){
 
   seqidx=idx_seqtmp[idx_aln] # extract aligned seq pointer, ref -> seq
   return(seqidx)
+}
+
+get_idx_select = function(dfref) {
+  idx_select =
+    list(
+      col_PK = dfref$id_ref[dfref$ss %in% c("A", "a") & (dfref$id_mrf > 0)],
+      col_pair = dfref$id_ref[dfref$pair > 0 &
+                                (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) &
+                                (dfref$id_mrf > 0)],
+      col_loop = dfref$id_ref[dfref$pair == 0 &
+                                (dfref$id_mrf > 0)],
+      col_all = dfref$id_ref[dfref$id_mrf > 0]
+    )
+}
+
+read_dfref = function(fsto, fmrf) {
+  # mrf = RNAmrf::read_mrf_renum(fmrf)
+
+  v1 = data.table::fread(cmd = paste("grep '^V'", fmrf))
+  v1$i_ori=as.integer(gsub(".*\\[(.*?)\\].*","\\1",v1$V1))
+  v1$i=1:nrow(v1)
+
+
+  ss = RNAmrf::sto2ss(fsto) # seedss
+  refs=sto2ref(fsto)
+  refs.c=seqinr::s2c(refs)
+  idx_ref = which(refs.c != ".")
+
+  df = RNAmrf::ss2pairs(ss) # seed ss
+
+  # idx_ref = which(df$ss != ".")
+  df$id_ref = 0
+  df$id_ref[idx_ref] = 1:length(idx_ref)
+
+  idx_mrf = v1$i_ori + 1 #
+
+  df$id_mrf = 0
+  df$id_mrf[idx_mrf] = 1:length(idx_mrf)
+
+  dfref = df[df$id_ref > 0, ]
+  return(dfref)
+}
+
+sto2ref=function(fsto){
+  refs=system2("cat",args=paste0(fsto,"|grep '^#=GC RF' |awk '{print $3}' "),stdout = TRUE)
+  refs2=paste0(refs,collapse = "")
+  return(refs2)
+}
+
+msa_a2m2seqidx_mrf=function(seq, dfref){
+  seqidx=RNAmrf:::msa_a2m2seqidx(seq)
+  seqidx_ref=numeric(length=length(dfref$id_ref))
+  seqidx_ref[dfref$id_mrf>0]=seqidx[dfref$id_mrf[(dfref$id_mrf>0)]]
+  return(seqidx_ref)
+}
+
+a2m2a2b=function(seq, idx_aln=NULL){
+  idx_seq=which(seq %in% c("A","U","C","G","N","R","M","a","u","c","g","n","r")) # seq -> full alignment
+  if (is.null(idx_aln)){
+    idx_aln=which(seq %in% c("A","U","C","G","N","R","M","-")) # ref->full alignment
+  }
+
+  idx_seqtmp=numeric(length(seq))
+  idx_seqtmp[idx_aln]=1:length(idx_aln)
+  a2b=idx_seqtmp[idx_seq]
+  return(a2b)
+}
+
+
+bench_by_range = function(seqidx.test, seqidx.ref, range=NULL){
+
+  if(is.null(range)) range=1:ncol(seqidx.ref)
+
+  seqidx.test.r=seqidx.test[,range]
+  seqidx.ref.r=seqidx.ref[,range]
+
+  sum(seqidx.ref.r == seqidx.test.r & seqidx.ref.r > 0)/length(which(seqidx.ref.r > 0))
+}
+
+bench_idx_select = function(seqidx.test,seqidx.ref,idx_select){
+  sapply(idx_select, function(a_range) {
+    bench_by_range(seqidx.test,seqidx.ref,a_range)
+  })
 }

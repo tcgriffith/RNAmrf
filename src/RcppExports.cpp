@@ -18,17 +18,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// test
-NumericVector test(NumericVector x);
-RcppExport SEXP _RNAmrf_test(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(test(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Falign
 double Falign(NumericMatrix sco_mtx);
 RcppExport SEXP _RNAmrf_Falign(SEXP sco_mtxSEXP) {
@@ -67,6 +56,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type mrf_h(mrf_hSEXP);
     Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
     rcpp_result_gen = Rcpp::wrap(ini_SCO(seq, mrf_mat, mrf_h, DEBUG));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ini_SCO_sparse
+NumericMatrix ini_SCO_sparse(IntegerVector seq, IntegerVector pairs, NumericMatrix mrf_mat, NumericMatrix mrf_h, bool DEBUG);
+RcppExport SEXP _RNAmrf_ini_SCO_sparse(SEXP seqSEXP, SEXP pairsSEXP, SEXP mrf_matSEXP, SEXP mrf_hSEXP, SEXP DEBUGSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type seq(seqSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type pairs(pairsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mrf_mat(mrf_matSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mrf_h(mrf_hSEXP);
+    Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
+    rcpp_result_gen = Rcpp::wrap(ini_SCO_sparse(seq, pairs, mrf_mat, mrf_h, DEBUG));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -177,15 +181,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // mod_SCO_sparse
-NumericMatrix mod_SCO_sparse(NumericMatrix SCO, int iteration, IntegerVector seq, NumericMatrix pair_mat, NumericMatrix mrf_mat, NumericMatrix mrf_h, double wt_h, double wt_j, double gap_o, double gap_e, bool DEBUG);
-RcppExport SEXP _RNAmrf_mod_SCO_sparse(SEXP SCOSEXP, SEXP iterationSEXP, SEXP seqSEXP, SEXP pair_matSEXP, SEXP mrf_matSEXP, SEXP mrf_hSEXP, SEXP wt_hSEXP, SEXP wt_jSEXP, SEXP gap_oSEXP, SEXP gap_eSEXP, SEXP DEBUGSEXP) {
+NumericMatrix mod_SCO_sparse(NumericMatrix SCO, int iteration, IntegerVector seq, IntegerVector pairs, NumericMatrix mrf_mat, NumericMatrix mrf_h, double wt_h, double wt_j, double gap_o, double gap_e, bool DEBUG);
+RcppExport SEXP _RNAmrf_mod_SCO_sparse(SEXP SCOSEXP, SEXP iterationSEXP, SEXP seqSEXP, SEXP pairsSEXP, SEXP mrf_matSEXP, SEXP mrf_hSEXP, SEXP wt_hSEXP, SEXP wt_jSEXP, SEXP gap_oSEXP, SEXP gap_eSEXP, SEXP DEBUGSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type SCO(SCOSEXP);
     Rcpp::traits::input_parameter< int >::type iteration(iterationSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type seq(seqSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type pair_mat(pair_matSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type pairs(pairsSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type mrf_mat(mrf_matSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type mrf_h(mrf_hSEXP);
     Rcpp::traits::input_parameter< double >::type wt_h(wt_hSEXP);
@@ -193,7 +197,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type gap_o(gap_oSEXP);
     Rcpp::traits::input_parameter< double >::type gap_e(gap_eSEXP);
     Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
-    rcpp_result_gen = Rcpp::wrap(mod_SCO_sparse(SCO, iteration, seq, pair_mat, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG));
+    rcpp_result_gen = Rcpp::wrap(mod_SCO_sparse(SCO, iteration, seq, pairs, mrf_mat, mrf_h, wt_h, wt_j, gap_o, gap_e, DEBUG));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -271,13 +275,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// str_sim
+double str_sim(CharacterVector v1, CharacterVector v2);
+RcppExport SEXP _RNAmrf_str_sim(SEXP v1SEXP, SEXP v2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type v1(v1SEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type v2(v2SEXP);
+    rcpp_result_gen = Rcpp::wrap(str_sim(v1, v2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_wt
+NumericVector calc_wt(CharacterMatrix seqmat, double cutoff);
+RcppExport SEXP _RNAmrf_calc_wt(SEXP seqmatSEXP, SEXP cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterMatrix >::type seqmat(seqmatSEXP);
+    Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_wt(seqmat, cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_gaussian", (DL_FUNC) &_RNAmrf_gaussian, 3},
-    {"_RNAmrf_test", (DL_FUNC) &_RNAmrf_test, 1},
     {"_RNAmrf_Falign", (DL_FUNC) &_RNAmrf_Falign, 1},
     {"_RNAmrf_retrieve_matj", (DL_FUNC) &_RNAmrf_retrieve_matj, 6},
     {"_RNAmrf_ini_SCO", (DL_FUNC) &_RNAmrf_ini_SCO, 4},
+    {"_RNAmrf_ini_SCO_sparse", (DL_FUNC) &_RNAmrf_ini_SCO_sparse, 5},
     {"_RNAmrf_ini_SCO_simple", (DL_FUNC) &_RNAmrf_ini_SCO_simple, 2},
     {"_RNAmrf_align", (DL_FUNC) &_RNAmrf_align, 3},
     {"_RNAmrf_align_b2a", (DL_FUNC) &_RNAmrf_align_b2a, 3},
@@ -291,6 +319,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_mod_SCO_PSgap", (DL_FUNC) &_RNAmrf_mod_SCO_PSgap, 10},
     {"_RNAmrf_mod_SCO_PSgap2", (DL_FUNC) &_RNAmrf_mod_SCO_PSgap2, 11},
     {"_RNAmrf_a2b2a2m", (DL_FUNC) &_RNAmrf_a2b2a2m, 3},
+    {"_RNAmrf_str_sim", (DL_FUNC) &_RNAmrf_str_sim, 2},
+    {"_RNAmrf_calc_wt", (DL_FUNC) &_RNAmrf_calc_wt, 2},
     {NULL, NULL, 0}
 };
 

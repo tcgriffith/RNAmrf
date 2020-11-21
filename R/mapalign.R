@@ -163,7 +163,8 @@ read_mrf= function(filemrf){
   )
   return(mrf)
 }
-retrieve_matj=function(i,a,j,b,mat_j,len_a){
+
+retrieve_matj_R=function(i,a,j,b,mat_j,len_a){
   return(mat_j[(i-1)*len_a+a,(j-1)*len_a+b])
 }
 

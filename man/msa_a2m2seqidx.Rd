@@ -9,10 +9,10 @@ msa_a2m2seqidx(seq, idx_aln = NULL)
 \arguments{
 \item{seq}{a sequence in a MSA, read from seqinr::read.fasta}
 
-\item{idx_aln}{integer vector, reference columns.}
+\item{idx_aln}{integer vector, reference columns. if NULL, it's guessed from the uppercase alignment.}
 }
 \value{
-seqidx, integer vector, pointer from reference to sequence.
+seqidx, integer vector, pointer from reference columns to sequence.
 e.g. seqidx[i]=5 means 5th residue is aligned to i.
 0 means a gap.
 }
