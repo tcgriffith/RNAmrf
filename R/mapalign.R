@@ -232,29 +232,29 @@ bench_seqid=function(seq,seqref){
 }
 
 
-bench_pair=function(seq,seqref,ctref, debug=FALSE){
-
-  npair=sum(ctref$j>0)
-
-  pairs=paste0(seq[ctref$i[ctref$j>0]],seq[ctref$j[ctref$j>0]])
-
-  pairs=toupper(pairs)
-
-  if(debug){
-    print(paste(pairs))
-  }
-
-  return(sum(pairs %in% RNASSP::energy2)/npair)
-}
-
-bench_aln=function(seq,seqref,ctref,debug=FALSE){
-  seqid=bench_seqid(seq,seqref)
-  pairid=bench_pair(seq,seqref,ctref,debug)
-  return(c(
-    seqid=seqid,
-    pairid=pairid
-  ))
-}
+# bench_pair=function(seq,seqref,ctref, debug=FALSE){
+#
+#   npair=sum(ctref$j>0)
+#
+#   pairs=paste0(seq[ctref$i[ctref$j>0]],seq[ctref$j[ctref$j>0]])
+#
+#   pairs=toupper(pairs)
+#
+#   if(debug){
+#     print(paste(pairs))
+#   }
+#
+#   return(sum(pairs %in% RNASSP::energy2)/npair)
+# }
+#
+# bench_aln=function(seq,seqref,ctref,debug=FALSE){
+#   seqid=bench_seqid(seq,seqref)
+#   pairid=bench_pair(seq,seqref,ctref,debug)
+#   return(c(
+#     seqid=seqid,
+#     pairid=pairid
+#   ))
+# }
 
 a2b2seq= function(a2b_1b,seq,mrf_len,type=c("c","s")){
 
@@ -281,6 +281,9 @@ a2b2seq= function(a2b_1b,seq,mrf_len,type=c("c","s")){
 #' @param iteration number of iterations
 #' @param wt_h weight of field term H
 #' @param wt_j weight of coupling term J
+#' @param init_method method to generate initiation,
+#'        1(default): fast, based on 1-body
+#'        2:          slow
 #' @param gap_ext gap extension penalty
 #' @param gap_open gap open penalty
 #' @param debug verbose
@@ -288,12 +291,21 @@ a2b2seq= function(a2b_1b,seq,mrf_len,type=c("c","s")){
 #' @return a2b, mapping index to sequence. Length is the same as mrf
 #' @export
 #'
-align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,gap_ext=0.1, gap_open=-1,debug=TRUE) {
+align_seq2mrf = function(seq, mrf,iteration=20,wt_h=1.0,wt_j=1.0,init_method=1,gap_ext=0.1, gap_open=-1,debug=TRUE) {
 
   exp_seq = encode_seq(seq)
 
-  SCO_init = ini_SCO_simple(exp_seq$seq_int_ungapped,
-                            mrf_h = mrf$mrf_h)
+  if (init_method ==2){
+    SCO_init = ini_SCO(exp_seq$seq_int_ungapped,
+                              mrf_h = mrf$mrf_h,
+                              mrf_mat=mrf$mrf_mat
+                          )
+  }
+  else{
+    SCO_init = ini_SCO_simple(exp_seq$seq_int_ungapped,
+                              mrf_h = mrf$mrf_h)
+  }
+
   SCO_mod = mod_SCO(
     SCO_init,
     iteration = iteration,

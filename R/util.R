@@ -138,29 +138,30 @@ msa_a2m2seqidx=function(seq, idx_aln=NULL){
   return(seqidx)
 }
 
+msa_a2m2seqidx_all = function(seqs, idx_aln=NULL){
+  idx_seqidx=lapply(seqs, function(aseq){
+    seq_idx = msa_a2m2seqidx(aseq, idx_aln=idx_aln)
+    return(seq_idx)
+  })
+
+  seqidx_mat= do.call(rbind,idx_seqidx)
+}
+
 get_idx_select = function(dfref) {
   idx_select =
     list(
-      col_PK = dfref$id_ref[dfref$ss %in% c("A", "a") & (dfref$id_mrf > 0)],
+      col_PK = dfref$id_ref[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")],
       col_pair = dfref$id_ref[dfref$pair > 0 &
-                                (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) &
-                                (dfref$id_mrf > 0)],
-      col_loop = dfref$id_ref[dfref$pair == 0 &
-                                (dfref$id_mrf > 0)],
-      col_all = dfref$id_ref[dfref$id_mrf > 0]
+                                (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d"))],
+      col_loop = dfref$id_ref[dfref$pair == 0],
+      col_all = dfref$id_ref
     )
 }
 
-read_dfref = function(fsto, fmrf) {
-  # mrf = RNAmrf::read_mrf_renum(fmrf)
-
-  v1 = data.table::fread(cmd = paste("grep '^V'", fmrf))
-  v1$i_ori=as.integer(gsub(".*\\[(.*?)\\].*","\\1",v1$V1))
-  v1$i=1:nrow(v1)
-
+read_dfref= function(fsto) {
 
   ss = RNAmrf::sto2ss(fsto) # seedss
-  refs=sto2ref(fsto)
+  refs=RNAmrf:::sto2ref(fsto)
   refs.c=seqinr::s2c(refs)
   idx_ref = which(refs.c != ".")
 
@@ -170,15 +171,14 @@ read_dfref = function(fsto, fmrf) {
   df$id_ref = 0
   df$id_ref[idx_ref] = 1:length(idx_ref)
 
-  idx_mrf = v1$i_ori + 1 #
 
-  df$id_mrf = 0
-  df$id_mrf[idx_mrf] = 1:length(idx_mrf)
+  df$id_ref_pair=df$id_ref[match(df$pair,df$id)]
+  df$id_ref_pair[is.na(df$id_ref_pair)]=0
+  # df$id_mrf=df$id_ref
 
   dfref = df[df$id_ref > 0, ]
   return(dfref)
 }
-
 sto2ref=function(fsto){
   refs=system2("cat",args=paste0(fsto,"|grep '^#=GC RF' |awk '{print $3}' "),stdout = TRUE)
   refs2=paste0(refs,collapse = "")
@@ -204,6 +204,21 @@ a2m2a2b=function(seq, idx_aln=NULL){
   return(a2b)
 }
 
+bench_pair = function(seqidx.test, seqidx.ref, pair){
+
+  idx_A=which(pair>0)
+  idx_B=pair[which(pair>0)]
+
+  true_pair = sum(seqidx.ref[,idx_A]>0)
+
+
+  predicted_pair=sum(seqidx.test[,idx_A] == seqidx.ref[,idx_A] &
+                       seqidx.test[,idx_B] == seqidx.ref[,idx_B] &
+                       seqidx.ref[,idx_A] >0)
+
+  sens=predicted_pair/true_pair
+  return(sens)
+}
 
 bench_by_range = function(seqidx.test, seqidx.ref, range=NULL){
 
@@ -214,6 +229,42 @@ bench_by_range = function(seqidx.test, seqidx.ref, range=NULL){
 
   sum(seqidx.ref.r == seqidx.test.r & seqidx.ref.r > 0)/length(which(seqidx.ref.r > 0))
 }
+
+bench_dfref= function(seqidx.test, seqidx.ref, dfref){
+  idx_select = get_idx_select(dfref)
+
+  rslt=list()
+
+  pair_all=dfref$id_ref_pair
+  pair_pk=pair_all
+  pair_pk[!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")]=0
+
+  pair_nonpk=pair_all
+  pair_nonpk[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")]=0
+
+
+  rslt$col_all=bench_by_range(seqidx.test,seqidx.ref)
+  rslt$col_loop=bench_by_range(seqidx.test,seqidx.ref,idx_select$col_loop)
+  rslt$pair_all=bench_pair(seqidx.test,seqidx.ref, pair_all)
+  rslt$pair_pk=bench_pair(seqidx.test,seqidx.ref, pair_pk)
+  rslt$pair_nonpk=bench_pair(seqidx.test,seqidx.ref, pair_nonpk)
+
+  return(unlist(rslt))
+}
+
+# get_idx_select = function(dfref) {
+#   idx_select =
+#     list(
+#       col_PK = dfref$id_ref[dfref$ss %in% c("A", "a") & (dfref$id_mrf > 0)],
+#       col_pair = dfref$id_ref[dfref$pair > 0 &
+#                                 (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) &
+#                                 (dfref$id_mrf > 0)],
+#       col_loop = dfref$id_ref[dfref$pair == 0 &
+#                                 (dfref$id_mrf > 0)],
+#       col_all = dfref$id_ref[dfref$id_mrf > 0]
+#     )
+# }
+
 
 bench_idx_select = function(seqidx.test,seqidx.ref,idx_select){
   sapply(idx_select, function(a_range) {
