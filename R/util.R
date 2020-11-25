@@ -120,7 +120,7 @@ ss2pairs = function(ss) {
 #' @param idx_aln integer vector, reference columns. if NULL, it's guessed from the uppercase alignment.
 #'
 #' @return seqidx, integer vector, pointer from reference columns to sequence.
-#' e.g. seqidx[i]=5 means 5th residue is aligned to i.
+#' e.g. seqidx[i]=5 means 5th reference residue is aligned to i.
 #' 0 means a gap.
 #'
 #'
@@ -147,18 +147,39 @@ msa_a2m2seqidx_all = function(seqs, idx_aln=NULL){
   seqidx_mat= do.call(rbind,idx_seqidx)
 }
 
-get_idx_select = function(dfref) {
-  idx_select =
-    list(
-      col_PK = dfref$id_ref[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")],
-      col_pair = dfref$id_ref[dfref$pair > 0 &
-                                (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d"))],
-      col_loop = dfref$id_ref[dfref$pair == 0],
-      col_all = dfref$id_ref
-    )
+# get_idx_select = function(dfref) {
+#
+#   idx_select =
+#     list(
+#       col_PK = dfref$id[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")],
+#       col_pair = dfref$id[dfref$pair > 0 &
+#                                 (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d"))],
+#       col_loop = dfref$id[dfref$pair == 0],
+#       col_all = dfref$id
+#     )
+#   if ("id_mrf" %in% names(dfref)){
+#     idx_select =
+#       list(
+#         col_PK = dfref$id[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d") & dfref$id_mrf >0],
+#         col_pair = dfref$id[dfref$pair > 0 &
+#                                   (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) & dfref$id_mrf >0],
+#         col_loop = dfref$id[dfref$pair == 0 & dfref$id_mrf >0],
+#         col_all = dfref$id[dfref$id_mrf >0]
+#       )
+#   }
+#
+#   return(idx_select)
+#
+# }
+
+get_idxref_from_sto=function(fsto){
+  refs=RNAmrf:::sto2ref(fsto)
+  refs.c=seqinr::s2c(refs)
+  idx_ref = which(refs.c != ".")
+  return(idx_ref)
 }
 
-read_dfref= function(fsto) {
+read_dfref= function(fsto, fmrf=NULL) {
 
   ss = RNAmrf::sto2ss(fsto) # seedss
   refs=RNAmrf:::sto2ref(fsto)
@@ -174,7 +195,15 @@ read_dfref= function(fsto) {
 
   df$id_ref_pair=df$id_ref[match(df$pair,df$id)]
   df$id_ref_pair[is.na(df$id_ref_pair)]=0
-  # df$id_mrf=df$id_ref
+  df$id_mrf=df$id_ref
+
+  if(!is.null(fmrf)){
+    v1 = data.table::fread(cmd = paste("grep '^V'", fmrf))
+    v1$i_ori=as.integer(gsub(".*\\[(.*?)\\].*","\\1",v1$V1))+1
+    v1$i=1:nrow(v1)
+    df$id_mrf=0
+    df$id_mrf[v1$i_ori]=v1$i
+  }
 
   dfref = df[df$id_ref > 0, ]
   return(dfref)
@@ -243,7 +272,7 @@ bench_dfref= function(seqidx.test, seqidx.ref, dfref){
   pair_nonpk[dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")]=0
 
 
-  rslt$col_all=bench_by_range(seqidx.test,seqidx.ref)
+  rslt$col_all=bench_by_range(seqidx.test,seqidx.ref, idx_select$col_all)
   rslt$col_loop=bench_by_range(seqidx.test,seqidx.ref,idx_select$col_loop)
   rslt$pair_all=bench_pair(seqidx.test,seqidx.ref, pair_all)
   rslt$pair_pk=bench_pair(seqidx.test,seqidx.ref, pair_pk)
@@ -252,18 +281,18 @@ bench_dfref= function(seqidx.test, seqidx.ref, dfref){
   return(unlist(rslt))
 }
 
-# get_idx_select = function(dfref) {
-#   idx_select =
-#     list(
-#       col_PK = dfref$id_ref[dfref$ss %in% c("A", "a") & (dfref$id_mrf > 0)],
-#       col_pair = dfref$id_ref[dfref$pair > 0 &
-#                                 (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) &
-#                                 (dfref$id_mrf > 0)],
-#       col_loop = dfref$id_ref[dfref$pair == 0 &
-#                                 (dfref$id_mrf > 0)],
-#       col_all = dfref$id_ref[dfref$id_mrf > 0]
-#     )
-# }
+get_idx_select = function(dfref) {
+  idx_select =
+    list(
+      col_PK = dfref$id_ref[dfref$ss %in% c("A", "a") & (dfref$id_mrf > 0)],
+      col_pair = dfref$id_ref[dfref$pair > 0 &
+                                (!dfref$ss %in% c("A", "a", "B", "b", "C", "c", "D", "d")) &
+                                (dfref$id_mrf > 0)],
+      col_loop = dfref$id_ref[dfref$pair == 0 &
+                                (dfref$id_mrf > 0)],
+      col_all = dfref$id_ref[dfref$id_mrf > 0]
+    )
+}
 
 
 bench_idx_select = function(seqidx.test,seqidx.ref,idx_select){
