@@ -1,6 +1,5 @@
 
 
-## How to Use RNAmrf
 
 [RNAmrf](https://github.com/tcgriffith/RNAmrf/) is an open-source (MIT) R package to align RNA sequences to a Markov Random Field model. You can install the development version from github:
 
