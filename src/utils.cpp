@@ -27,3 +27,26 @@ NumericVector calc_wt(CharacterMatrix seqmat,double cutoff=0.8){
 
   return(wt+1);
 }
+
+// [[Rcpp::export]]
+double calc_apsi(CharacterMatrix seqmat){
+  int nseq=seqmat.nrow();
+  NumericVector wt(nseq);
+
+  double simsum=0;
+  int sum=0;
+
+  for (int i=0;i < seqmat.nrow();i++){
+    CharacterVector vi = seqmat(i,_);
+    for(int j=i+1;j<seqmat.nrow();j++){
+      CharacterVector vj = seqmat(j,_);
+      double sim = str_sim(vi,vj);
+      simsum=simsum+sim;
+      sum++;
+    }
+  }
+
+  double apsi=(double)simsum/sum;
+
+  return(apsi);
+}

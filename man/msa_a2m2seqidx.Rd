@@ -13,7 +13,7 @@ msa_a2m2seqidx(seq, idx_aln = NULL)
 }
 \value{
 seqidx, integer vector, pointer from reference columns to sequence.
-e.g. seqidx[i]=5 means 5th residue is aligned to i.
+e.g. seqidx[i]=5 means 5th reference residue is aligned to i.
 0 means a gap.
 }
 \description{

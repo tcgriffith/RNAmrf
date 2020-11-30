@@ -10,6 +10,7 @@ align_seq2mrf(
   iteration = 20,
   wt_h = 1,
   wt_j = 1,
+  init_method = 1,
   gap_ext = 0.1,
   gap_open = -1,
   debug = TRUE
@@ -25,6 +26,10 @@ align_seq2mrf(
 \item{wt_h}{weight of field term H}
 
 \item{wt_j}{weight of coupling term J}
+
+\item{init_method}{method to generate initiation,
+1(default): fast, based on 1-body
+2:          slow}
 
 \item{gap_ext}{gap extension penalty}
 

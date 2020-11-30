@@ -4,7 +4,9 @@
 \name{BP_canonical}
 \alias{BP_canonical}
 \title{A dataset containing canonical BP}
-\format{A character vector of canonical pairs}
+\format{
+A character vector of canonical pairs
+}
 \usage{
 BP_canonical
 }

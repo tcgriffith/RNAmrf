@@ -299,6 +299,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calc_apsi
+double calc_apsi(CharacterMatrix seqmat);
+RcppExport SEXP _RNAmrf_calc_apsi(SEXP seqmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterMatrix >::type seqmat(seqmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_apsi(seqmat));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_gaussian", (DL_FUNC) &_RNAmrf_gaussian, 3},
@@ -321,6 +332,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_RNAmrf_a2b2a2m", (DL_FUNC) &_RNAmrf_a2b2a2m, 3},
     {"_RNAmrf_str_sim", (DL_FUNC) &_RNAmrf_str_sim, 2},
     {"_RNAmrf_calc_wt", (DL_FUNC) &_RNAmrf_calc_wt, 2},
+    {"_RNAmrf_calc_apsi", (DL_FUNC) &_RNAmrf_calc_apsi, 1},
     {NULL, NULL, 0}
 };
 

@@ -81,3 +81,7 @@ calc_wt <- function(seqmat, cutoff = 0.8) {
     .Call(`_RNAmrf_calc_wt`, seqmat, cutoff)
 }
 
+calc_apsi <- function(seqmat) {
+    .Call(`_RNAmrf_calc_apsi`, seqmat)
+}
+
