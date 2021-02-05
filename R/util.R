@@ -249,6 +249,32 @@ bench_pair = function(seqidx.test, seqidx.ref, pair){
   return(sens)
 }
 
+
+# sensitivity precision f1 and mcc
+bench_pair_spfm = function(seqidx.test, seqidx.ref, pair){
+
+  idx_A=which(pair>0)
+  idx_B=pair[which(pair>0)]
+
+  TPFN = sum(seqidx.ref[,idx_A]>0)
+
+  TPFP =sum(seqidx.test[,idx_A] >0)
+
+
+  TP =sum(seqidx.test[,idx_A] == seqidx.ref[,idx_A] &
+            seqidx.test[,idx_B] == seqidx.ref[,idx_B] &
+            seqidx.ref[,idx_A] >0)
+
+  rslts=c(
+    sens=TP/TPFN,
+    prec=TP/TPFP,
+    mcc= sqrt(sens*prec),
+    f1= sens*prec/(sens+prec)
+  )
+  return(sens)
+}
+
+
 bench_by_range = function(seqidx.test, seqidx.ref, range=NULL){
 
   if(is.null(range)) range=1:ncol(seqidx.ref)
